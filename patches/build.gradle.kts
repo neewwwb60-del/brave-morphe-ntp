@@ -6,21 +6,19 @@ import com.android.tools.r8.utils.ArchiveResourceProvider
 import ru.vyarus.gradle.plugin.animalsniffer.AnimalSniffer
 
 plugins {
-    // Fails the build if the patches file uses JDK APIs that do not exist on Android.
     alias(libs.plugins.animalsniffer)
 }
 
 group = "app.template"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
-        contact = "na"
-        website = "na"
+        name = "Brave NTP Patches"
+        description = "Morphe patches for custom Brave New Tab Page behavior."
+        source = "https://github.com/neewwwb60-del/brave-morphe-ntp"
+        author = "neewwwb60-del"
+        contact = "https://github.com/neewwwb60-del"
+        website = "https://github.com/neewwwb60-del/brave-morphe-ntp"
         license = "GPLv3"
     }
 }
@@ -38,24 +36,17 @@ dependencies {
 }
 
 animalsniffer {
-    // Checking only the compiled sources would miss bundled dependencies,
-    // so the whole patches file is checked by checkAndroidApi below.
     sourceSets = emptyList()
 }
 
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
-
         dependsOn(build)
-
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
     }
 
-    // Runs D8 on every class in the patches file (the patches and all bundled dependencies)
-    // but outputs class files instead of dex, so the check sees the code as it runs on Android,
-    // after D8 has replaced methods it backports such as List.of() and Optional.isEmpty().
     val desugarPatchesClasses = register("desugarPatchesClasses") {
         val patchesFile = jar.flatMap { it.archiveFile }
         val classpath = sourceSets["main"].compileClasspath
@@ -96,7 +87,6 @@ tasks {
         classpath = sourceSets["main"].compileClasspath
         animalsnifferSignatures = configurations["signature"]
         animalsnifferClasspath = configurations["animalsniffer"]
-        // Only used to show source lines in the report.
         sourcesDirs = sourceSets["main"].allSource.sourceDirectories
         reports.text.outputLocation = layout.buildDirectory.file("reports/animalsniffer/patches.text")
         reports.csv.outputLocation = layout.buildDirectory.file("reports/animalsniffer/patches.csv")
@@ -106,12 +96,10 @@ tasks {
         dependsOn(checkAndroidApi)
     }
 
-    // buildAndroid does not depend on check.
     named("buildAndroid") {
         dependsOn(checkAndroidApi)
     }
 
-    // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")
     }
